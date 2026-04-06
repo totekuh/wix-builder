@@ -1,6 +1,5 @@
 import string
 import secrets
-import random
 from typing import List
 
 WORDS1 = [
@@ -74,5 +73,5 @@ def generate_name(
 
 def random_version(parts: int = 3) -> str:
     parts = max(2, min(parts, 4))
-    nums = [str(random.randint(0, 50)) for _ in range(parts)]
+    nums = [str(secrets.randbelow(50) + 1)] + [str(secrets.randbelow(51)) for _ in range(parts - 1)]
     return ".".join(nums)

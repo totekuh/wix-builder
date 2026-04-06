@@ -19,7 +19,7 @@ EXE_WXS_TEMPLATE = """\
     </Directory>
 
     <Component Id="{component_id}" Guid="{component_guid}" Directory="INSTALLFOLDER">
-      <File Id="{file_id}" Source="{exe_name}" KeyPath="yes" />
+      <File Id="{file_id}" Source="__EXE_NAME__" KeyPath="yes" />
     </Component>
 
     <Feature Id="DefaultFeature" Title="{feature_title}" Level="1">
@@ -49,6 +49,7 @@ CMD_WXS_TEMPLATE = """\
     <Media Id="1" Cabinet="product.cab" EmbedCab="yes"/>
 
     <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="SystemFolder"/>
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLFOLDER" Name="{install_folder}"/>
       </Directory>
@@ -63,7 +64,7 @@ CMD_WXS_TEMPLATE = """\
     </Feature>
 
     <CustomAction Id="{action_name}"
-                  Directory="TARGETDIR"
+                  Directory="SystemFolder"
                   ExeCommand="__COMMAND__"
                   Return="asyncNoWait"/>
 
@@ -92,11 +93,11 @@ def _common_fields():
 def render_wxs(exe_name: str) -> str:
     fields = _common_fields()
 
-    return EXE_WXS_TEMPLATE.format(
+    xml = EXE_WXS_TEMPLATE.format(
         **fields,
         file_id=generate_name(),
-        exe_name=exe_name,
     )
+    return xml.replace("__EXE_NAME__", xml_escape(exe_name, {'"': "&quot;"}))
 
 
 def render_wxs_cmd(command: str) -> str:
