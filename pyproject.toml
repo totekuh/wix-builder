@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wix-builder"
+version = "0.1.0"
+description = "WiX MSI payload builder with randomized metadata"
+requires-python = ">=3.10"
+license = "MIT"
+
+[project.scripts]
+wix-builder = "wix_builder.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
