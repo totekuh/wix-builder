@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check src/
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e .
+      - name: Test name generation
+        run: python -c "
+          from wix_builder.names import generate_name, random_version;
+          for _ in range(100):
+              n = generate_name();
+              assert n[0].isalpha(), f'bad start: {n}';
+              assert n.replace('_','').isalnum(), f'bad chars: {n}';
+          for _ in range(100):
+              v = random_version(parts=4);
+              parts = v.split('.');
+              assert len(parts) == 4;
+              assert int(parts[0]) >= 1;
+              assert all(p.isdigit() for p in parts);
+          print('name + version generation OK')
+          "
+      - name: Test EXE template rendering
+        run: python -c "
+          from wix_builder.template import render_wxs;
+          xml = render_wxs('payload.exe');
+          assert 'payload.exe' in xml;
+          assert '__EXE_NAME__' not in xml;
+          xml2 = render_wxs('test & special.exe');
+          assert '&amp;' in xml2;
+          print('EXE template OK')
+          "
+      - name: Test CMD template rendering
+        run: python -c "
+          from wix_builder.template import render_wxs_cmd;
+          xml = render_wxs_cmd('cmd.exe /c echo hello');
+          assert 'SystemFolder' in xml;
+          assert '__COMMAND__' not in xml;
+          assert 'cmd.exe /c echo hello' in xml;
+          xml2 = render_wxs_cmd('powershell -c \"test\"');
+          assert '&quot;' in xml2;
+          print('CMD template OK')
+          "
